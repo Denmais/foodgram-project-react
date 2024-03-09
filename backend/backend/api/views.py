@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from rest_framework.settings import api_settings
 from rest_framework import status
 from api.permissions import OwnerOrReadOnly
+from django.http import HttpResponse
 
 
 class TagViewSet(viewsets.ModelViewSet):
@@ -43,7 +44,8 @@ class RecepieList(APIView):
         is_favorite = dict(self.request.query_params).get("is_favorited")
         recepies = Recepies.objects.all()
         if tags is not None:
-            recepies = recepies.filter(raceptags__tags__slug__in=tags)
+            recepies = recepies.filter(
+                raceptags__tags__slug__in=tags).distinct()
         if is_is_shopping_cart is not None:
             if is_is_shopping_cart[0] == '1' and user.is_authenticated:
                 recepies = recepies.filter(shopping_list_user__user=user)
@@ -193,9 +195,9 @@ class ShopListCreateView(APIView):
                         j.ingredients.measurement_unit, 0]
                 ingr_dict[j.ingredients.name][1] += j.amount
 
-        with open("product_list.txt", "w") as file:
-            file.write("     Продукты           Количество\n")
-            for i in ingr_dict:
-                file.write(f"**** {i}({ingr_dict[i][0]})"
-                           f" ----------- {ingr_dict[i][1]}\n")
-        return Response(status=status.HTTP_200_OK)
+        resp = "     Продукты           Количество\n"
+        for i in ingr_dict:
+            resp += (
+                f"**** {i}({ingr_dict[i][0]}) ----------- {ingr_dict[i][1]}\n")
+
+        return HttpResponse(resp, content_type="text/plain")

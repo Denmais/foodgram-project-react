@@ -71,9 +71,9 @@ class UserTokenSerializer(serializers.Serializer):
               and UserModel.objects.filter(email=data['email']).exists()):
             raise serializers.ValidationError(
                 'Ошибка, проверьте правильность пароль!')
-        elif (not UserModel.objects.filter(password=data['password']).exists()
-              and not UserModel.objects.filter(email=data['email']).exists()):
-            raise serializers.ValidationError("Ошибка!")
+        elif not UserModel.objects.filter(password=data['password'],
+                                          email=data['email']).exists():
+            raise serializers.ValidationError("Ошибка авторизации!")
         return data
 
 

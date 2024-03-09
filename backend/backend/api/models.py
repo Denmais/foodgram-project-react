@@ -4,6 +4,7 @@ from api.validators import validate_color
 
 
 class Tags(models.Model):
+    '''Модель тегов.'''
     name = models.CharField(max_length=100, unique=True)
     color = models.CharField(max_length=100, unique=True,
                              validators=[validate_color])
@@ -18,6 +19,7 @@ class Tags(models.Model):
 
 
 class Ingredients(models.Model):
+    '''Модель ингредиентов.'''
     name = models.CharField(max_length=100)
     measurement_unit = models.CharField(max_length=100)
 
@@ -30,6 +32,7 @@ class Ingredients(models.Model):
 
 
 class Recepies(models.Model):
+    '''Модель рецептов.'''
     author = models.ForeignKey(
         UserModel,
         on_delete=models.CASCADE,
@@ -61,6 +64,7 @@ class Recepies(models.Model):
 
 
 class RecepIngredients(models.Model):
+    '''Промежуточная модель рецепт-ингредиент.'''
     recep = models.ForeignKey(
         Recepies,
         on_delete=models.CASCADE,
@@ -74,6 +78,7 @@ class RecepIngredients(models.Model):
 
 
 class TagsRecipe(models.Model):
+    '''Промежуточная модель тег-рецепт.'''
     recep = models.ForeignKey(
         Recepies,
         on_delete=models.CASCADE,
@@ -86,6 +91,7 @@ class TagsRecipe(models.Model):
 
 
 class FavoriteList(models.Model):
+    '''Модель избранного.'''
     user = models.ForeignKey(
         UserModel,
         on_delete=models.CASCADE,
@@ -99,6 +105,7 @@ class FavoriteList(models.Model):
 
 
 class SubscribeList(models.Model):
+    '''Модель подписки.'''
     user = models.ForeignKey(
         UserModel,
         on_delete=models.CASCADE,
@@ -112,6 +119,7 @@ class SubscribeList(models.Model):
 
 
 class ShoppingList(models.Model):
+    '''Модель списка покупок.'''
     user = models.ForeignKey(
         UserModel,
         on_delete=models.CASCADE,

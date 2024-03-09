@@ -34,7 +34,7 @@ class IngredientsSerializer(serializers.ModelSerializer):
 
 
 class IngredientsInRecepieSerializer(serializers.ModelSerializer):
-
+    id = serializers.IntegerField(source="ingredients.pk")
     name = serializers.CharField(source="ingredients.name")
     measurement_unit = serializers.CharField(
         source="ingredients.measurement_unit")
@@ -45,7 +45,7 @@ class IngredientsInRecepieSerializer(serializers.ModelSerializer):
 
 
 class IngredientsInRecepieCreateSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField()
+    id = serializers.IntegerField(source="ingredients.pk")
     name = serializers.CharField(read_only=True, source="ingredients.name")
     measurement_unit = serializers.CharField(
         read_only=True, source="ingredients.measurement_unit")
@@ -106,7 +106,8 @@ class RecepiesCreateSerializer(serializers.ModelSerializer):
 
         for ingredient in ingredients:
             amount = ingredient['amount']
-            ingredient = get_object_or_404(Ingredients, pk=ingredient['id'])
+            ingredient = get_object_or_404(Ingredients,
+                                           pk=ingredient['ingredients']['pk'])
 
             RecepIngredients.objects.create(
                 amount=amount,
@@ -133,7 +134,8 @@ class RecepiesCreateSerializer(serializers.ModelSerializer):
         ingredients_data = validated_data.pop('recep_ingred')
         for ingredients in ingredients_data:
             RecepIngredients.objects.create(recep_id=instance.id,
-                                            ingredients_id=ingredients['id'],
+                                            ingredients_id=ingredients[
+                                                'ingredients']['pk'],
                                             amount=ingredients['amount'])
         ls = []
         tag_data = validated_data.pop('tags')
@@ -150,13 +152,13 @@ class RecepiesCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Поле ингредиентов пусто!')
         dict_of_ingr = {}
         for ingredient in value:
-            print(ingredient['amount'])
-            if not Ingredients.objects.filter(pk=ingredient['id']).exists():
+            if (not Ingredients.objects.filter(pk=ingredient[
+                                            'ingredients']['pk']).exists()):
                 raise serializers.ValidationError(
-                    f"Ингредиент с id {ingredient['id']} не существует!")
-            if ingredient['id'] in dict_of_ingr:
+                    f"Ингредиент с id {ingredient['ingredients']['pk']} не существует!")
+            if ingredient['ingredients']['pk'] in dict_of_ingr:
                 raise serializers.ValidationError("Повторяющийся ингредиент!")
-            dict_of_ingr[ingredient['id']] = 1
+            dict_of_ingr[ingredient['ingredients']['pk']] = 1
             if int(ingredient['amount']) <= 0:
                 raise serializers.ValidationError("Отрицательное количество!")
         return value

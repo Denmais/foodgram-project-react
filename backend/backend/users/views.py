@@ -22,7 +22,6 @@ class RegisterUser(APIView):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def get(self, request):
-        print(self.pagination_class)
         users = UserModel.objects.all()
         page = self.paginate_queryset(users)
         if page is not None:
@@ -43,7 +42,6 @@ class RegisterUser(APIView):
         if self.paginator is None:
             return None
         limit = self.request.query_params.get('limit')
-        print(limit)
         if limit is not None:
             self.paginator.page_size = limit
         return self.paginator.paginate_queryset(queryset, self.request,
@@ -70,7 +68,6 @@ class DetailUser(APIView):
 class MeUser(APIView):
 
     def get(self, request):
-        print(request.user)
         user = UserModel.objects.get(username=request.user.username)
         serializer = UsersSerializer(user, context={"request": request})
         return Response(serializer.data)
@@ -127,7 +124,7 @@ class SubscribeView(APIView):
         recipes_limit = self.request.query_params.get('recipes_limit')
         SubscribeList.objects.create(user=user, subscribe=author)
         if recipes_limit is not None:
-            author.limit_recepies = Recepies.objects.all()[:int(recipes_limit)]
+            author.limit_recepies = Recepies.objects.filter(author=author)[:int(recipes_limit)]
             serializer = SubscribeLimitSerializer(author,
                                                   context={"request": request})
         else:
@@ -154,14 +151,14 @@ class SubscribeListView(APIView):
 
     def get(self, request):
         user = request.user
-        print(user)
+#        subscribes = UserModel.objects.filter(
+#            user_sublist__user=user.pk)
         subscribes = UserModel.objects.filter(
             user_that_subscribe__user=user.pk)
-        print(UserModel.objects.filter(user_that_subscribe__user=user.pk))
         recipes_limit = self.request.query_params.get('recipes_limit')
         if recipes_limit is not None:
             for i in subscribes:
-                i.limit_recepies = Recepies.objects.all()[:int(recipes_limit)]
+                i.limit_recepies = Recepies.objects.filter(author_id=i.pk)[:int(recipes_limit)]
         page = self.paginate_queryset(subscribes)
         if page is not None:
             if recipes_limit is not None:

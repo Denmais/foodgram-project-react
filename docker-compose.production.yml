@@ -1,0 +1,40 @@
+version: '3'
+
+volumes:
+  pg_data:
+  static_volume:
+  media_volume:
+
+services:
+  db:
+    image: postgres:13.0-alpine
+    env_file: .env
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+  backend:
+    image: denmais/foodgram_backend
+    env_file: ./.env
+    volumes:
+      - static_volume:/app/static_django
+      - media_volume:/app/media
+    depends_on:
+      - db
+  frontend:
+    env_file: .env
+    image: denmais/foodgram_frontend
+    volumes:
+      - ../frontend/:/app/result_build
+    depends_on:
+      - backend
+  gateway:
+    image: denmais/foodgram_gateway
+    env_file: .env
+    volumes:
+      - static_volume:/usr/share/nginx/html/staticfiles/
+      - ../frontend/build/:/usr/share/nginx/html
+      - media_volume:/usr/share/nginx/html/media/
+    ports:
+      - 8000:80 
+    depends_on:
+      - backend
+      - frontend
