@@ -152,10 +152,11 @@ class RecepiesCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Поле ингредиентов пусто!')
         dict_of_ingr = {}
         for ingredient in value:
-            if (not Ingredients.objects.filter(pk=ingredient[
-                                            'ingredients']['pk']).exists()):
+            if (not Ingredients.objects.filter(
+                    pk=ingredient['ingredients']['pk']).exists()):
                 raise serializers.ValidationError(
-                    f"Ингредиент с id {ingredient['ingredients']['pk']} не существует!")
+                    f"Ингредиент с id {ingredient['ingredients']['pk']}"
+                    " не существует!")
             if ingredient['ingredients']['pk'] in dict_of_ingr:
                 raise serializers.ValidationError("Повторяющийся ингредиент!")
             dict_of_ingr[ingredient['ingredients']['pk']] = 1

@@ -124,7 +124,8 @@ class SubscribeView(APIView):
         recipes_limit = self.request.query_params.get('recipes_limit')
         SubscribeList.objects.create(user=user, subscribe=author)
         if recipes_limit is not None:
-            author.limit_recepies = Recepies.objects.filter(author=author)[:int(recipes_limit)]
+            author.limit_recepies = Recepies.objects.filter(
+                author=author)[:int(recipes_limit)]
             serializer = SubscribeLimitSerializer(author,
                                                   context={"request": request})
         else:
@@ -158,7 +159,8 @@ class SubscribeListView(APIView):
         recipes_limit = self.request.query_params.get('recipes_limit')
         if recipes_limit is not None:
             for i in subscribes:
-                i.limit_recepies = Recepies.objects.filter(author_id=i.pk)[:int(recipes_limit)]
+                i.limit_recepies = Recepies.objects.filter(
+                    author_id=i.pk)[:int(recipes_limit)]
         page = self.paginate_queryset(subscribes)
         if page is not None:
             if recipes_limit is not None:
