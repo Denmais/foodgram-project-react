@@ -87,7 +87,6 @@ class RecepieList(APIView):
         if self.paginator is None:
             return None
         limit = self.request.query_params.get('limit')
-        print(limit)
         if limit is not None:
             self.paginator.page_size = limit
         return self.paginator.paginate_queryset(

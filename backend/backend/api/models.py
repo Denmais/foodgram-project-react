@@ -35,6 +35,11 @@ class Ingredients(models.Model):
     class Meta:
         verbose_name = 'Ингредиент'
         verbose_name_plural = 'Ингредиенты'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['name', 'measurement_unit'], name='unique_ingredient'
+            )
+        ]
 
 
 class Recepies(models.Model):
@@ -50,11 +55,13 @@ class Recepies(models.Model):
                               verbose_name="Изображение")
     ingredients = models.ManyToManyField(
         Ingredients,
-        through='RecepIngredients'
+        through='RecepIngredients',
+        verbose_name="Ингредиенты"
     )
     tags = models.ManyToManyField(
         Tags,
-        through='TagsRecipe'
+        through='TagsRecipe',
+        verbose_name="Тэги"
     )
     cooking_time = models.SmallIntegerField(
         validators=[MinValueValidator(1, message='Минимальное значение = 1')],
@@ -63,7 +70,8 @@ class Recepies(models.Model):
                             verbose_name="Описание")
     favorite = models.ManyToManyField(
         UserModel,
-        through="FavoriteList"
+        through="FavoriteList",
+        verbose_name="Избранное"
     )
 
     def __str__(self) -> str:
@@ -158,6 +166,11 @@ class SubscribeList(models.Model):
     class Meta:
         verbose_name = 'Список подписок'
         verbose_name_plural = 'Списки подписок'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'subscribe'], name='unique_subscribe'
+            )
+        ]
 
 
 class ShoppingList(models.Model):
@@ -178,3 +191,8 @@ class ShoppingList(models.Model):
     class Meta:
         verbose_name = 'Список покупок'
         verbose_name_plural = 'Списки покупок'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'recepie'], name='unique_shoppinglist'
+            )
+        ]

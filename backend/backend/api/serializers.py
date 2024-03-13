@@ -111,11 +111,9 @@ class RecepiesCreateSerializer(serializers.ModelSerializer):
         ing_list = []
         for ingredient in ingredients:
             amount = ingredient['amount']
-            ingredient = get_object_or_404(Ingredients,
-                                           pk=ingredient['ingredients']['pk'])
             new = RecepIngredients(
                 amount=amount,
-                ingredients=ingredient,
+                ingredients_id=ingredient['ingredients']['pk'],
                 recep=recepie
             )
             ing_list.append(new)
@@ -123,11 +121,10 @@ class RecepiesCreateSerializer(serializers.ModelSerializer):
 
         tags_list = []
         for tag in tags:
-            tag = get_object_or_404(Tags, pk=tag)
 
             new = TagsRecipe(
                 recep=recepie,
-                tags=tag
+                tags_id=tag
             )
             tags_list.append(new)
         TagsRecipe.objects.bulk_create(tags_list)
@@ -182,7 +179,6 @@ class RecepiesCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Поле тегов пусто!')
         dict_of_tags = {}
         for tag in value:
-            print(tag)
             if not Tags.objects.filter(pk=tag).exists():
                 raise serializers.ValidationError(
                     f"Тег с id {tag} не существует!")
@@ -197,7 +193,6 @@ class RecepiesCreateSerializer(serializers.ModelSerializer):
         return value
 
     def validate(self, data):
-        print('recep_ingred' in data)
         if 'recep_ingred' not in data:
             raise serializers.ValidationError(
                 "Поле ингредиентов - обязательное!")
