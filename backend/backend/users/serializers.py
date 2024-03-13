@@ -6,7 +6,7 @@ from rest_framework.validators import UniqueValidator
 
 
 class UsersSerializer(serializers.ModelSerializer):
-
+    """Сериализатор пользователей."""
     is_subscribed = serializers.SerializerMethodField()
 
     def get_is_subscribed(self, obj):
@@ -30,6 +30,7 @@ class UsersSerializer(serializers.ModelSerializer):
 
 
 class UserGetSerializer(serializers.ModelSerializer):
+    """Сериализатор пользователя."""
     class Meta:
         fields = ('username', 'email', 'first_name',
                   'last_name', 'id')
@@ -37,7 +38,7 @@ class UserGetSerializer(serializers.ModelSerializer):
 
 
 class UserCreateSerializer(serializers.ModelSerializer):
-    """Сериализатор модели User."""
+    """Сериализатор создания пользователя."""
     username = serializers.CharField(max_length=100,
                                      required=True,
                                      validators=[validate_forbidden_username,
@@ -56,7 +57,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
 
 
 class UserTokenSerializer(serializers.Serializer):
-
+    """Сериализатор получения токена."""
     email = serializers.EmailField(max_length=154, required=True)
     password = serializers.CharField(max_length=154, required=True)
 
@@ -78,6 +79,7 @@ class UserTokenSerializer(serializers.Serializer):
 
 
 class ResetPasswordSeriazlizer(serializers.Serializer):
+    """Сериализатор смены пароля."""
     new_password = serializers.CharField(max_length=100)
     current_password = serializers.CharField(max_length=100)
 

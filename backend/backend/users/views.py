@@ -12,6 +12,7 @@ from api.models import SubscribeList, Recepies
 
 
 class RegisterUser(APIView):
+    """Представление регистрации."""
     permission_classes = (permissions.AllowAny,)
     pagination_class = api_settings.DEFAULT_PAGINATION_CLASS
 
@@ -53,7 +54,7 @@ class RegisterUser(APIView):
 
 
 class DetailUser(APIView):
-
+    """Представление пользователя."""
     permission_classes = (permissions.AllowAny,)
 
     def get(self, request, pk):
@@ -66,7 +67,7 @@ class DetailUser(APIView):
 
 
 class MeUser(APIView):
-
+    """Представление активного пользователя."""
     def get(self, request):
         user = UserModel.objects.get(username=request.user.username)
         serializer = UsersSerializer(user, context={"request": request})
@@ -74,6 +75,7 @@ class MeUser(APIView):
 
 
 class GetTokenView(APIView):
+    """Представление токена."""
     permission_classes = (permissions.AllowAny,)
 
     def post(self, request):
@@ -92,7 +94,7 @@ class GetTokenView(APIView):
 
 
 class ResetPasswordView(APIView):
-
+    """Представление смены пароля."""
     def post(self, request):
         user = request.user
         serializer = ResetPasswordSeriazlizer(data=request.data,
@@ -104,14 +106,14 @@ class ResetPasswordView(APIView):
 
 
 class LogoutView(APIView):
-
+    """Представление выхода пользователя."""
     def post(self, request):
         Token.objects.get(key=request.auth).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class SubscribeView(APIView):
-
+    """Представление подписки."""
     def post(self, request, pk):
         user = request.user
         try:
@@ -147,18 +149,17 @@ class SubscribeView(APIView):
 
 
 class SubscribeListView(APIView):
-
+    """Представление подписок."""
     pagination_class = api_settings.DEFAULT_PAGINATION_CLASS
 
     def get(self, request):
         user = request.user
-#        subscribes = UserModel.objects.filter(
-#            user_sublist__user=user.pk)
         subscribes = UserModel.objects.filter(
             user_that_subscribe__user=user.pk)
         recipes_limit = self.request.query_params.get('recipes_limit')
         if recipes_limit is not None:
             for i in subscribes:
+                # Добавление поля с ограниченным кол-ом рецептов
                 i.limit_recepies = Recepies.objects.filter(
                     author_id=i.pk)[:int(recipes_limit)]
         page = self.paginate_queryset(subscribes)

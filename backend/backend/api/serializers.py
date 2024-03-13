@@ -10,6 +10,7 @@ from django.core.files.base import ContentFile
 
 
 class Base64ImageField(serializers.ImageField):
+    """Сериализатор изображения."""
     def to_internal_value(self, data):
         if isinstance(data, str) and data.startswith('data:image'):
             format, imgstr = data.split(';base64,')
@@ -20,20 +21,21 @@ class Base64ImageField(serializers.ImageField):
 
 
 class TagsSerializer(serializers.ModelSerializer):
-
+    """Сериализатор тэгов."""
     class Meta:
         model = Tags
         fields = "__all__"
 
 
 class IngredientsSerializer(serializers.ModelSerializer):
-
+    """Сериализатор ингредиентов."""
     class Meta:
         model = Ingredients
         fields = "__all__"
 
 
 class IngredientsInRecepieSerializer(serializers.ModelSerializer):
+    """Сериализатор ингредиентов в рецепте."""
     id = serializers.IntegerField(source="ingredients.pk")
     name = serializers.CharField(source="ingredients.name")
     measurement_unit = serializers.CharField(
@@ -45,6 +47,7 @@ class IngredientsInRecepieSerializer(serializers.ModelSerializer):
 
 
 class IngredientsInRecepieCreateSerializer(serializers.ModelSerializer):
+    """Сериализатор создания рецепта с ингредиентами."""
     id = serializers.IntegerField(source="ingredients.pk")
     name = serializers.CharField(read_only=True, source="ingredients.name")
     measurement_unit = serializers.CharField(
@@ -56,6 +59,7 @@ class IngredientsInRecepieCreateSerializer(serializers.ModelSerializer):
 
 
 class RecepiesSerializer(serializers.ModelSerializer):
+    """Сериализатор рецептов."""
     ingredients = IngredientsInRecepieSerializer(many=True,
                                                  source="recep_ingred")
     tags = TagsSerializer(many=True)
@@ -83,6 +87,7 @@ class RecepiesSerializer(serializers.ModelSerializer):
 
 
 class TagsCreateSerializer(serializers.ModelSerializer):
+    """Сериализатор создания тэгов."""
     id = serializers.IntegerField()
 
     class Meta:
@@ -91,6 +96,7 @@ class TagsCreateSerializer(serializers.ModelSerializer):
 
 
 class RecepiesCreateSerializer(serializers.ModelSerializer):
+    """Сериализатор создания рецептов."""
     ingredients = IngredientsInRecepieCreateSerializer(many=True,
                                                        source="recep_ingred")
     tags = serializers.ListSerializer(child=serializers.IntegerField())
@@ -100,30 +106,34 @@ class RecepiesCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         ingredients = validated_data.pop("recep_ingred")
         tags = validated_data.pop('tags')
-        print(ingredients)
 
         recepie = Recepies.objects.create(**validated_data)
-
+        ing_list = []
         for ingredient in ingredients:
             amount = ingredient['amount']
             ingredient = get_object_or_404(Ingredients,
                                            pk=ingredient['ingredients']['pk'])
-
-            RecepIngredients.objects.create(
+            new = RecepIngredients(
                 amount=amount,
                 ingredients=ingredient,
                 recep=recepie
             )
+            ing_list.append(new)
+        RecepIngredients.objects.bulk_create(ing_list)
+
+        tags_list = []
         for tag in tags:
             tag = get_object_or_404(Tags, pk=tag)
-            TagsRecipe.objects.create(
+
+            new = TagsRecipe(
                 recep=recepie,
                 tags=tag
             )
+            tags_list.append(new)
+        TagsRecipe.objects.bulk_create(tags_list)
         return recepie
 
     def update(self, instance, validated_data):
-        print(instance.author)
         instance.name = validated_data.get('name', instance.name)
         instance.text = validated_data.get('text', instance.text)
         instance.image = validated_data.get('image', instance.image)
@@ -132,11 +142,14 @@ class RecepiesCreateSerializer(serializers.ModelSerializer):
         instance.ingredients.clear()
 
         ingredients_data = validated_data.pop('recep_ingred')
+        ing_list = []
         for ingredients in ingredients_data:
-            RecepIngredients.objects.create(recep_id=instance.id,
-                                            ingredients_id=ingredients[
-                                                'ingredients']['pk'],
-                                            amount=ingredients['amount'])
+            new = RecepIngredients(recep_id=instance.id,
+                                   ingredients_id=ingredients['ingredients'][
+                                       'pk'], amount=ingredients['amount'])
+            ing_list.append(new)
+        RecepIngredients.objects.bulk_create(ing_list)
+
         ls = []
         tag_data = validated_data.pop('tags')
         for tags in tag_data:
@@ -207,14 +220,14 @@ class RecepiesCreateSerializer(serializers.ModelSerializer):
 
 
 class FavoriteListSerializer(serializers.ModelSerializer):
-
+    """Сериализатор избранного."""
     class Meta:
         model = Recepies
         fields = ("id", "cooking_time", "name", "image")
 
 
 class SubscribeSerializer(UsersSerializer):
-
+    """Сериализатор подписки."""
     recipes = FavoriteListSerializer(many=True, source="user_recepies")
     recipes_count = serializers.SerializerMethodField()
 
@@ -237,7 +250,7 @@ class SubscribeSerializer(UsersSerializer):
 
 
 class SubscribeLimitSerializer(UsersSerializer):
-
+    """Сериализатор подписки с ограниченными рецептами."""
     recipes = FavoriteListSerializer(many=True, source="limit_recepies")
     recipes_count = serializers.SerializerMethodField()
 

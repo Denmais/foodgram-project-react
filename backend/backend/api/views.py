@@ -13,6 +13,7 @@ from django.http import HttpResponse
 
 
 class TagViewSet(viewsets.ModelViewSet):
+    """Вьюсет для тэгов."""
     queryset = Tags.objects.all()
     serializer_class = TagsSerializer
     permission_classes = (permissions.AllowAny,)
@@ -21,6 +22,7 @@ class TagViewSet(viewsets.ModelViewSet):
 
 
 class IngredientViewSet(viewsets.ModelViewSet):
+    """Вьюсет для ингредиентов."""
     queryset = Ingredients.objects.all()
     serializer_class = IngredientsSerializer
     permission_classes = (permissions.AllowAny,)
@@ -31,7 +33,7 @@ class IngredientViewSet(viewsets.ModelViewSet):
 
 
 class RecepieList(APIView):
-
+    """Представление рецептов."""
     pagination_class = api_settings.DEFAULT_PAGINATION_CLASS
     permission_classes = (OwnerOrReadOnly,)
 
@@ -97,7 +99,7 @@ class RecepieList(APIView):
 
 
 class RecepieDetail(APIView):
-
+    """Представление рецепта."""
     permission_classes = (OwnerOrReadOnly,)
 
     def get(self, request, pk):
@@ -129,7 +131,7 @@ class RecepieDetail(APIView):
 
 
 class FavoriteView(APIView):
-
+    """Представление избранного."""
     def post(self, request, pk):
         user = request.user
         try:
@@ -156,7 +158,7 @@ class FavoriteView(APIView):
 
 
 class ShoppingListView(APIView):
-
+    """Представление списка покупок."""
     def post(self, request, pk):
         user = request.user
         try:
@@ -183,17 +185,21 @@ class ShoppingListView(APIView):
 
 
 class ShopListCreateView(APIView):
+    """Представление создания списка покупок."""
     permission_classes = (OwnerOrReadOnly,)
 
     def get(self, request):
         ingr_dict = {}
         shop_list = ShoppingList.objects.filter(user=request.user)
-        for i in shop_list:
-            for j in i.recepie.recep_ingred.all():
-                if j.ingredients.name not in ingr_dict:
-                    ingr_dict[j.ingredients.name] = [
-                        j.ingredients.measurement_unit, 0]
-                ingr_dict[j.ingredients.name][1] += j.amount
+        values = shop_list.values('recepie__ingredients__name',
+                                  'recepie__ingredients__measurement_unit',
+                                  'recepie__recep_ingred__amount')
+        for value in values:
+            if value['recepie__ingredients__name'] not in ingr_dict:
+                ingr_dict[value['recepie__ingredients__name']] = [value[
+                    'recepie__ingredients__measurement_unit'], 0]
+            ingr_dict[value['recepie__ingredients__name']][1] += value[
+                'recepie__recep_ingred__amount']
 
         resp = "     Продукты           Количество\n"
         for i in ingr_dict:
